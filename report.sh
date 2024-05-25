@@ -73,11 +73,6 @@ logfile="/tmp/smart_report.tmp"
 subject="Status Report and Configuration Backup for ${host}"
 boundary="gc0p4Jq0M2Yt08jU534c0p"
 
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-	alias md5=md5sum
-	alias sha256=sha256sum
-fi
-
 function list_drives(){
 	res=""
 	if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -132,8 +127,13 @@ if [ "$configBackup" == "true" ]; then
 	else
 		# Config integrity check passed; copy config db, generate checksums, make .tar.gz archive
 		cp /data/freenas-v1.db "/tmp/${filename}.db"
-		md5 "/tmp/${filename}.db" > /tmp/config_backup.md5
-		sha256 "/tmp/${filename}.db" > /tmp/config_backup.sha256
+		if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+			md5sum "/tmp/${filename}.db" > /tmp/config_backup.md5
+			sha256sum "/tmp/${filename}.db" > /tmp/config_backup.sha256
+		else
+			md5 "/tmp/${filename}.db" > /tmp/config_backup.md5
+			sha256 "/tmp/${filename}.db" > /tmp/config_backup.sha256
+		fi
 		(
 		cd "/tmp/" || exit;
 		tar -czf "${tarfile}" "./${filename}.db" ./config_backup.md5 ./config_backup.sha256;
