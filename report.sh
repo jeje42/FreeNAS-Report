@@ -243,7 +243,7 @@ for pool in $pools; do
 		else
 			scrubDate="$(echo "$statusOutput" | grep "scan" | awk '{print $15"-"$12"-"$13"_"$14}')"
 		fi
-		scrubTS="$(date -j -f "%Y-%b-%e_%H:%M:%S" "$scrubDate" "+%s")"
+		scrubTS="$(date -f "%Y-%b-%e_%H:%M:%S" "$scrubDate" "+%s")"
 		currentTS="$(date "+%s")"
 		scrubAge=$((((currentTS - scrubTS) + 43200) / 86400))
 		if [ "$multiDay" -ge 1 ] ; then
