@@ -73,6 +73,11 @@ logfile="/tmp/smart_report.tmp"
 subject="Status Report and Configuration Backup for ${host}"
 boundary="gc0p4Jq0M2Yt08jU534c0p"
 
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+	alias md5=md5sum
+	alias sha256=sha256sum
+fi
+
 function list_drives(){
 	res=""
 	if [[ "$OSTYPE" == "linux-gnu"* ]]; then
