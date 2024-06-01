@@ -1,4 +1,5 @@
 #!/bin/bash
+shopt -s expand_aliases
 
 ###### ZPool & SMART status report with FreeNAS config backup
 ### Original script by joeschmuck, modified by Bidelu0hm, then by melp (me)
@@ -37,11 +38,10 @@
 ### TODO:
 # - Fix SSD SMART reporting
 # - Add support for conveyance test
+#
+source .env
 
-
-###### User-definable Parameters
-### Email Address
-email="email@address.com"
+source ./system-specific-aliases
 
 ### Global table colors
 okColor="#c9ffcc"       # Hex code for color to use in SMART Status column if drives pass (default is light green, #c9ffcc)
@@ -66,48 +66,31 @@ configBackup="true"     # Change to "false" to skip config backup (which renders
 saveBackup="true"       # Change to "false" to delete FreeNAS config backup after mail is sent; "true" to keep it in dir below
 backupLocation="/path/to/config/backup"   # Directory in which to save FreeNAS config backups
 
-
-###### Auto-generated Parameters
-host=$(hostname -s)
-logfile="/tmp/smart_report.tmp"
-subject="Status Report and Configuration Backup for ${host}"
-boundary="gc0p4Jq0M2Yt08jU534c0p"
-
-function list_drives(){
-	res=""
-	if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-		res=$(lsblk | grep disk | awk '{print $1}' | sed ':a;N;s/\n/\t/;ta')
-	else
-		res=sysctl -n kern.disks
-	fi
-	echo ${res}
-}
-
-if [ "$includeSSD" == "true" ]; then
-	drives=$(for drive in $(list_drives); do
-	if [ "$(smartctl -i /dev/"${drive}" | grep "SMART support is: Enabled")" ]; then
-		printf "%s " "${drive}"
-	fi
-done | awk '{for (i=NF; i!=0 ; i--) print $i }')
+function drives_lookup () {
+	if [ "$includeSSD" == "true" ]; then
+		drives=$(for drive in $(list_drives); do
+		if [ "$(smartctl -i /dev/"${drive}" | grep "SMART support is: Enabled")" ]; then
+			printf "%s " "${drive}"
+		fi
+	done | awk '{for (i=NF; i!=0 ; i--) print $i }')
 else
 	drives=$(for drive in $(list_drives); do
 	if [ "$(smartctl -i /dev/"${drive}" | grep "SMART support is: Enabled")" ] && ! [ "$(smartctl -i /dev/"${drive}" | grep "Solid State Device")" ]; then
 		printf "%s " "${drive}"
 	fi
 done | awk '{for (i=NF; i!=0 ; i--) print $i }')
-fi
+	fi
+	echo ${drives}
+}
+
+###### Auto-generated Parameters
+logfile="/tmp/smart_report.tmp"
+
+drives=$(drives_lookup)
 pools=$(zpool list -H -o name)
 
-###### Email pre-formatting
-### Set email headers
-(
-echo "From: ${email}"
-echo "To: ${email}"
-echo "Subject: ${subject}"
-echo "MIME-Version: 1.0"
-echo "Content-Type: multipart/mixed; boundary=${boundary}"
-) > "$logfile"
-
+source ./email-writing
+write_email_header $logfile
 
 ###### Config backup (if enabled)
 if [ "$configBackup" == "true" ]; then
@@ -127,13 +110,8 @@ if [ "$configBackup" == "true" ]; then
 	else
 		# Config integrity check passed; copy config db, generate checksums, make .tar.gz archive
 		cp /data/freenas-v1.db "/tmp/${filename}.db"
-		if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-			md5sum "/tmp/${filename}.db" > /tmp/config_backup.md5
-			sha256sum "/tmp/${filename}.db" > /tmp/config_backup.sha256
-		else
-			md5 "/tmp/${filename}.db" > /tmp/config_backup.md5
-			sha256 "/tmp/${filename}.db" > /tmp/config_backup.sha256
-		fi
+		md5 "/tmp/${filename}.db" > /tmp/config_backup.md5
+		sha256 "/tmp/${filename}.db" > /tmp/config_backup.sha256
 		(
 		cd "/tmp/" || exit;
 		tar -czf "${tarfile}" "./${filename}.db" ./config_backup.md5 ./config_backup.sha256;
@@ -238,6 +216,7 @@ for pool in $pools; do
 			scrubErrors="$(echo "$statusOutput" | grep "scan" | awk '{print $8}')"
 		fi
 		# Convert time/datestamp format presented by zpool status, compare to current date, calculate scrub age
+		# Linux needs 5 May 2024 07:05:11 instead of 2024-May-5_07:05:11
 		if [ "$multiDay" -ge 1 ] ; then
 			scrubDate="$(echo "$statusOutput" | grep "scan" | awk '{print $17"-"$14"-"$15"_"$16}')"
 		else
@@ -434,3 +413,4 @@ echo "--${boundary}--"
 ### Send report
 sendmail -t -oi < "$logfile"
 rm "$logfile"
+

@@ -1,0 +1,18 @@
+#!/bin/bash
+#
+host=$(hostname -s)
+#logfile="/tmp/smart_report.tmp"
+subject="Status Report and Configuration Backup for ${host}"
+boundary="gc0p4Jq0M2Yt08jU534c0p"
+
+function write_email_header () {
+	###### Email pre-formatting
+	### Set email headers
+	(
+	echo "From: ${email}"
+	echo "To: ${email}"
+	echo "Subject: ${subject}"
+	echo "MIME-Version: 1.0"
+	echo "Content-Type: multipart/mixed; boundary=${boundary}"
+	) > "$1"
+}
