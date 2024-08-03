@@ -218,11 +218,12 @@ for pool in $pools; do
 		# Convert time/datestamp format presented by zpool status, compare to current date, calculate scrub age
 		# Linux needs 5 May 2024 07:05:11 instead of 2024-May-5_07:05:11
 		if [ "$multiDay" -ge 1 ] ; then
-			scrubDate="$(echo "$statusOutput" | grep "scan" | awk '{print $17"-"$14"-"$15"_"$16}')"
+			#scrubDate="$(echo "$statusOutput" | grep "scan" | awk '{print $17"-"$14"-"$15"_"$16}')"
+			scrubDate="$(echo "$statusOutput" | grep "scan" | awk '{print $15" "$14" "$17" "$16}')"
 		else
-			scrubDate="$(echo "$statusOutput" | grep "scan" | awk '{print $15"-"$12"-"$13"_"$14}')"
+			scrubDate="$(echo "$statusOutput" | grep "scan" | awk '{print $13" "$12" "$15" "$14}')"
 		fi
-		scrubTS="$(date -f "%Y-%b-%e_%H:%M:%S" "$scrubDate" "+%s")"
+		scrubTS="$(parseDate "$scrubDate" "+%s")"
 		currentTS="$(date "+%s")"
 		scrubAge=$((((currentTS - scrubTS) + 43200) / 86400))
 		if [ "$multiDay" -ge 1 ] ; then
