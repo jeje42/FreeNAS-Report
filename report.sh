@@ -398,12 +398,18 @@ for drive in $drives; do
 	) >> "$logfile"
 done
 # Remove some un-needed junk from the output
-sed -i '' -e '/smartctl 6.3/d' "$logfile"
-sed -i '' -e '/Copyright/d' "$logfile"
-sed -i '' -e '/=== START OF READ/d' "$logfile"
-sed -i '' -e '/SMART Attributes Data/d' "$logfile"
-sed -i '' -e '/Vendor Specific SMART/d' "$logfile"
-sed -i '' -e '/SMART Error Log Version/d' "$logfile"
+#sed -i '' -e '/smartctl 6.3/d' "$logfile"
+#sed -i '' -e '/Copyright/d' "$logfile"
+#sed -i '' -e '/=== START OF READ/d' "$logfile"
+#sed -i '' -e '/SMART Attributes Data/d' "$logfile"
+#sed -i '' -e '/Vendor Specific SMART/d' "$logfile"
+#sed -i '' -e '/SMART Error Log Version/d' "$logfile"
+delete_text_from_file "smartctl 6.3" "$logfile"
+delete_text_from_file "Copyright" "$logfile"
+delete_text_from_file "=== START OF READ" "$logfile"
+delete_text_from_file "SMART Attributes Data" "$logfile"
+delete_text_from_file "Vendor Specific SMART" "$logfile"
+delete_text_from_file "SMART Error Log Version" "$logfile"
 
 ### End details section, close MIME section
 (
