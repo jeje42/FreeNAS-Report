@@ -4,9 +4,9 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 	alias md5="md5sum"
 	alias sha256="sha256sum"
 	alias parseDate="date -d"
-	alias delete_text_from_file="sed -i '/$1/d' $2"
+	alias delete_text_from_file="sed -i "
 else
 	alias list_drives="sysctl -n kern.disks"
 	alias parseDate="date -f \"%e %b %Y %H:%M:%S\""
-	alias delete_text_from_file="sed -i '' -e '/$1/d' $2"
+	alias delete_text_from_file="sed -i '' -e "
 fi
