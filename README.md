@@ -3,6 +3,23 @@ Original script by joeschmuck, modified by Bidelu0hm, then by melp
 
 Preview of the output here: http://i.imgur.com/t9Mtqyt.png
 
+## Installation
+
+### Requirements
+
+Your Truenas installation needs to be able to send emails. Please check the SMTP/Email config in the Truenas General settings.
+
+### Core
+
+TODO - add core specific configuration
+
+### Scale
+
+ - Clone this repo at the location of your choice on your Scale system
+ - Add a cron job to run report.sh, under System settings -> Advanced -> Cron Jobs
+ - In the command field, use bash to invoke report.sh: ```bash your/git/rpo/location/report.sh ```
+ - Run as root, as of Dragonfish
+
 **At a minimum, you will need to enter your email address in user-definable parameter section.** Feel free to edit other user parameters as needed.
 
 **Version: v1.3**
