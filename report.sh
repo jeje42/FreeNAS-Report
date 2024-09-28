@@ -43,28 +43,6 @@ source .env
 
 source ./system-specific-aliases
 
-### Global table colors
-okColor="#c9ffcc"       # Hex code for color to use in SMART Status column if drives pass (default is light green, #c9ffcc)
-warnColor="#ffd6d6"     # Hex code for WARN color (default is light red, #ffd6d6)
-critColor="#ff0000"     # Hex code for CRITICAL color (default is bright red, #ff0000)
-altColor="#f4f4f4"      # Table background alternates row colors between white and this color (default is light gray, #f4f4f4)
-
-### zpool status summary table settings
-usedWarn=90             # Pool used percentage for CRITICAL color to be used
-scrubAgeWarn=30         # Maximum age (in days) of last pool scrub before CRITICAL color will be used
-
-### SMART status summary table settings
-includeSSD="true"      # [NOTE: Currently this is pretty much useless] Change to "true" to include SSDs in SMART status summary table; "false" to disable
-tempWarn=40             # Drive temp (in C) at which WARNING color will be used
-tempCrit=45             # Drive temp (in C) at which CRITICAL color will be used
-sectorsCrit=10          # Number of sectors per drive with errors before CRITICAL color will be used
-testAgeWarn=5           # Maximum age (in days) of last SMART test before CRITICAL color will be used
-powerTimeFormat="ymdh"  # Format for power-on hours string, valid options are "ymdh", "ymd", "ym", or "y" (year month day hour)
-
-### FreeNAS config backup settings
-configBackup="true"     # Change to "false" to skip config backup (which renders next two options meaningless); "true" to keep config backups enabled
-saveBackup="true"       # Change to "false" to delete FreeNAS config backup after mail is sent; "true" to keep it in dir below
-backupLocation="/path/to/config/backup"   # Directory in which to save FreeNAS config backups
 
 function drives_lookup () {
 	if [ "$includeSSD" == "true" ]; then
@@ -216,12 +194,10 @@ for pool in $pools; do
 			scrubErrors="$(echo "$statusOutput" | grep "scan" | awk '{print $8}')"
 		fi
 		# Convert time/datestamp format presented by zpool status, compare to current date, calculate scrub age
-		# Linux needs 5 May 2024 07:05:11 instead of 2024-May-5_07:05:11
 		if [ "$multiDay" -ge 1 ] ; then
-			#scrubDate="$(echo "$statusOutput" | grep "scan" | awk '{print $17"-"$14"-"$15"_"$16}')"
-			scrubDate="$(echo "$statusOutput" | grep "scan" | awk '{print $15" "$14" "$17" "$16}')"
+			scrubDate="$(multiDayScrubDate "$statusOutput")"
 		else
-			scrubDate="$(echo "$statusOutput" | grep "scan" | awk '{print $13" "$12" "$15" "$14}')"
+			scrubDate="$(singleDayScrubDate "$statusOutput")"
 		fi
 		scrubTS="$(parseDate "$scrubDate" "+%s")"
 		currentTS="$(date "+%s")"

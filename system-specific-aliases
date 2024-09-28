@@ -1,12 +1,40 @@
 #!/bin/bash
+
+function linuxSingleDayScrubDate () {
+       #Date format 5 May 2024 07:05:11
+       echo "$1" | grep "scan" | awk '{print $13" "$12" "$15" "$14}'
+}
+
+
+function linuxMultiDayScrubDate () {
+       #Date format 5 May 2024 07:05:11
+       echo "$1" | grep "scan" | awk '{print $15" "$14" "$17" "$16}'
+}
+
+function linuxSingleDayScrubDate () {
+       #Date format 5 May 2024 07:05:11
+       echo "$1" | grep "scan" | awk '{print $13" "$12" "$15" "$14}'
+}
+
+
+function bsdMultiDayScrubDate () {
+       #Date format 2024-May-5_07:05:11
+       echo "$1" | grep "scan" | awk '{print $17" "$14" "$15" "$16}'
+}
+
+
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 	alias list_drives="lsblk | grep disk | awk '{print $1}' | sed ':a;N;s/\n/\t/;ta'"
 	alias md5="md5sum"
 	alias sha256="sha256sum"
 	alias parseDate="date -d"
 	alias delete_text_from_file="sed -i "
+	alias singleDayScrubDate="linuxSingleDayScrubDate $1"
+	alias multiDayScrubDate="linuxMultiDayScrubDate $1"
 else
 	alias list_drives="sysctl -n kern.disks"
 	alias parseDate="date -f \"%e %b %Y %H:%M:%S\""
 	alias delete_text_from_file="sed -i '' -e "
+	alias singleDayScrubDate="bsdSingleDayScrubDate $1"
+	alias multiDayScrubDate="bsdMultiDayScrubDate $1"
 fi
